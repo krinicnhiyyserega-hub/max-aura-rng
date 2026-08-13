@@ -108,9 +108,33 @@ body {
     font-weight: bold;
 }
 
-.btn-ads { background: #eab308; color: black !important; }
-.btn-inventory { background: #3b82f6; }
-.btn-friends { background: #22c55e; }
+/* Кнопка рекламы, когда она активна */
+.btn-ads {
+    background: #eab308;
+    color: black !important;
+    transition: 0.3s ease;
+}
+
+/* Эффект, когда кнопка рекламы заблокирована таймером */
+.btn-ads:disabled {
+    background: #3f3f46 !important; /* Делаем её серой */
+    color: #a1a1aa !important;
+    cursor: not-allowed;
+    transform: scale(1) !important;
+    opacity: 0.6;
+}
+/* Синяя кнопка для Рюкзака */
+.btn-inventory {
+    background: #3b82f6 !important;
+    color: white !important;
+}
+
+/* Зеленая кнопка для Друзей */
+.btn-friends {
+    background: #22c55e !important;
+    color: white !important;
+}
+
 
 /* ВСПЛЫВАЮЩЕЕ ОКНО (МОДАЛКА) */
 .modal {
