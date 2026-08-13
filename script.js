@@ -311,25 +311,52 @@ function toggleFriends(show) {
     }
 }
 
-// ✉️ ДЕЙСТВИЕ ПРИ НАЖАТИИ «ОТПРАВИТЬ ССЫЛКУ»
+// ✉️ НАДЁЖНОЕ ДЕЙСТВИЕ ДЛЯ МЕССЕНДЖЕРА МАКС
 function inviteFriendAction() {
+    // 1. Берём чистый адрес вашей игры на GitHub Pages
+    const baseUrl = window.location.href.split('?')[0];
+    
+    // Формируем реферальную ссылку (привязываем имя текущего игрока)
+    const referralLink = `${baseUrl}?start=${playerName}`;
+    
+    // Текст сообщения, который автоматически подставится в чат вашему другу
+    const inviteText = "🔮 Смотри какую крутую RNG игру с аурами я нашёл! Заходи по моей ссылке и получи стартовую удачу: ";
+    
+    // Создаём универсальную сетевую ссылку «Поделиться», которую распознаёт встроенный браузер Макса
+    const maxShareUrl = `https://t.me{encodeURIComponent(referralLink)}&text=${encodeURIComponent(inviteText)}`;
+
+    // 🔥 ЗАПУСКАТЕЛЬ НАТИВНОГО ОКНА МАКСА
+    // Пытаемся вызвать внутреннее перенаправление мессенджера
+    try {
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.openLink(maxShareUrl); // Нативный метод для Mini Apps
+        } else {
+            // Если игрок сидит через веб-версию Макса на ПК, просто открываем вкладку
+            window.open(maxShareUrl, '_blank');
+        }
+    } catch (e) {
+        console.log("Локальный тест: копируем ссылку аварийно.");
+    }
+
+    // 2. Аварийный буфер (если мессенджер запретил открытие ссылок, ссылка всё равно скопируется в память телефона)
     const linkInput = document.getElementById("share-link-input");
-    
-    // 1. Копируем ссылку в память телефона
-    linkInput.select();
-    linkInput.setSelectionRange(0, 99999); 
-    navigator.clipboard.writeText(linkInput.value);
+    if (linkInput) {
+        linkInput.value = referralLink;
+        linkInput.select();
+        linkInput.setSelectionRange(0, 99999);
+        document.execCommand("copy"); // Старый надёжный метод копирования для мобилок
+    }
 
-    // 2. Начисляем +10 энергии за поддержку игры
+    // 🎉 ЧЕСТНАЯ НАГРАДА: Начисляем +10 энергии за то, что игрок нажал кнопку и позвал друга!
     playerEnergy += 10; 
-    updateEnergyUI();   
-    saveProgress();     
+    updateEnergyUI();   // Обновляем циферки энергии на главном экране
+    saveProgress();     // Записываем новые 10 единиц энергии в автосохранение
 
-    // 3. Показываем уведомление игроку
-    alert("🎉 Ссылка скопирована! Отправь её другу в мессенджер.\n\nТебе начислено +10 Энергии 🔋 за поддержку игры!");
+    alert("🎉 Успешно!\n\nСсылка скопирована в буфер обмена, и Макс открывает список друзей.\n\nТебе начислено +10 Энергии 🔋 за поддержку игры!");
     
-    toggleFriends(false); // Закрываем окошко
+    toggleFriends(false); // Закрываем всплывающее окошко рюкзака/друзей
 }
+
 
 // 🔗 ФУНКЦИЯ-ЗАГЛУШКА (ЧТОБЫ КНОПКА ИЗ HTML НЕ ВЫДАВАЛА ОШИБКУ)
 function openFriends() {
