@@ -188,6 +188,10 @@ function sellAura(id) {
     }
 }
 
+// Переменная для хранения таймера в памяти
+let adCooldownInterval;
+
+// 📺 ГЛАВНАЯ ФУНКЦИЯ ПРОСМОТРА РЕКЛАМЫ С ТАЙМЕРОМ
 function watchAd() {
     if (typeof window.yaContextCb === 'undefined') {
         alert("Рекламный блок сейчас загружается, попробуйте еще раз через пару секунд.");
@@ -201,17 +205,17 @@ function watchAd() {
             platform: 'touch',
             callbacks: {
                 onOpen: () => {
-                    console.log("📺 Рекламное окно открыто. Игра приостановлена.");
+                    console.log("📺 Рекламное окно открыто.");
                 },
-                onRewarded: () => {
-                    console.log("🎉 Игрок досмотрел рекламу! Выдаем награду.");
+                onClose: () => {
+                    // 🎉 Успешный просмотр — выдаем награду
                     playerEnergy += 5; 
                     updateEnergyUI();  
                     saveProgress();    
-                    alert("Успешно! Вам начислено +5 единиц энергии 🔋.");
-                },
-                onClose: () => {
-                    console.log("❌ Рекламное окно закрыто пользователем.");
+                    alert("🎉 Спасибо за просмотр! Вам начислено +5 энергии 🔋.");
+
+                    // 🔥 ЗАПУСКАЕМ ТАЙМЕР НА 5 МИНУТ (5 * 60 = 300 секунд)
+                    startAdCooldown(300);
                 },
                 onError: (error) => {
                     console.error("Отказ показа рекламы Яндекса:", error);
@@ -221,6 +225,63 @@ function watchAd() {
         });
     });
 }
+
+// ⏱️ ФУНКЦИЯ ЗАПУСКА ОТСЧЕТА ВРЕМЕНИ
+function startAdCooldown(seconds) {
+    const adButton = document.querySelector(".btn-ads");
+    adButton.disabled = true; // Блокируем кнопку
+
+    // Запоминаем точное время, КОГДА реклама снова станет доступна (текущее время + секунды)
+    const unlockTime = Date.now() + seconds * 1000;
+    localStorage.setItem("rng_ad_unlock_time", unlockTime);
+
+    // Сбрасываем старый интервал, если он был
+    clearInterval(adCooldownInterval);
+
+    // Запускаем ежесекундный отсчет
+    adCooldownInterval = setInterval(() => {
+        const timeLeft = Math.max(0, Math.ceil((unlockTime - Date.now()) / 1000));
+
+        if (timeLeft <= 0) {
+            // Время прошло! Делаем кнопку снова активной
+            clearInterval(adCooldownInterval);
+            adButton.disabled = false;
+            adButton.innerText = "📺 Реклама";
+            localStorage.removeItem("rng_ad_unlock_time");
+        } else {
+            // Считаем минуты и секунды для текста на кнопке
+            const minutes = Math.floor(timeLeft / 60);
+            const remainingSeconds = timeLeft % 60;
+            const formattedTime = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            
+            adButton.innerText = `⏳ Реклама (${formattedTime})`;
+        }
+    }, 1000);
+}
+
+// 🔍 ФУНКЦИЯ ПРОВЕРКИ ТАЙМЕРА ПРИ СТАРТЕ ИГРЫ
+function checkAdCooldown() {
+    const savedUnlockTime = localStorage.getItem("rng_ad_unlock_time");
+    
+    if (savedUnlockTime) {
+        const timeLeft = Math.max(0, Math.ceil((parseInt(savedUnlockTime) - Date.now()) / 1000));
+        
+        if (timeLeft > 0) {
+            // Если игрок обновил страницу, а время еще не вышло — возвращаем таймер назад
+            startAdCooldown(timeLeft);
+        } else {
+            localStorage.removeItem("rng_ad_unlock_time");
+        }
+    }
+}
+
+// НАЙДИТЕ САМЫЙ КОНЕЦ ВАШЕГО ФАЙЛА SCRIPT.JS И ДОБАВЬТЕ ТУДА ВЫЗОВ ПРОВЕРКИ:
+// Допишите строку checkAdCooldown(); сразу после loadLiveLeaderboard();
+loadProgress();
+updateInventoryUI();
+loadLiveLeaderboard();
+checkAdCooldown(); // 👈 ДОБАВИТЬ СЮДА
+
 
 
 function rollAura() {
