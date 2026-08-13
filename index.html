@@ -86,23 +86,16 @@
         </div>
     </div>
 </div>
-        <!-- Блок Рейтинга Топ-10 -->
-        <div class="leaderboard-section">
-            <h3>🏆 Рейтинг игроков (Топ-10)</h3>
-            <ol id="leaderboard-list"></ol>
-        </div>
+           <!-- Блок Рейтинга Топ-10 -->
+    <div class="leaderboard-section">
+        <h3>🏆 Рейтинг игроков (Топ-10)</h3>
+        <ol id="leaderboard-list"></ol>
     </div>
 
-    <!-- ВСТАВЛЯЕМ СЮДА КОД ЯНДЕКСА -->
+    <!-- ИСПРАВЛЕННЫЙ БЛОК ЯНДЕКСА (БЕЗ АВТОЗАПУСКА) -->
     <!-- Yandex.RTB R-A-19746878-2 -->
     <script>
-    window.yaContextCb.push(() => {
-        Ya.Context.AdvManager.render({
-            "blockId": "R-A-19746878-2",
-            "type": "fullscreen",
-            "platform": "touch"
-        })
-    })
+        window.yaContextCb = window.yaContextCb || [];
     </script>
 
     <!-- Скрипт игры должен идти самым последним! -->
@@ -110,6 +103,4 @@
 </body>
 </html>
 
-    <script src="script.js"></script>
-</body>
-</html>
+
