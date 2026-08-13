@@ -65,27 +65,34 @@
             </div>
         </div>
     </div>
-<!-- ВСПЛЫВАЮЩЕЕ ОКНО ДРУЗЕЙ (РЕФЕРАЛЫ) -->
-<div id="friends-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-button" onclick="toggleFriends(false)">&times;</span>
-        <h3>👥 Приведи друга</h3>
-        <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 15px;">
-            Отправь ссылку другу. За каждого, кто зайдет в игру, ты получишь <b style="color: #22c55e;">+10 Энергии 🔋</b>!
-        </p>
-        
-        <!-- Поле с ссылкой -->
-        <input type="text" id="share-link-input" readonly style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #3f3f46; background: #27272a; color: white; text-align: center; margin-bottom: 10px; font-size: 12px;">
-        
-        <!-- Кнопка копирования -->
-        <button class="btn-buy" onclick="copyLink()">📋 Скопировать ссылку</button>
+    <!-- ВСПЛЫВАЮЩЕЕ ОКНО: РЕФЕРАЛЬНАЯ СИСТЕМА С СПИСКОМ ДРУЗЕЙ -->
+    <div id="friends-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-button" onclick="toggleFriends(false)">&times;</span>
+            <h3>👥 Приведи друга!</h3>
+            <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 15px; text-align: center;">
+                Поделись игрой с друзьями в мессенджере Макс! За каждую отправку ты мгновенно получишь награду:
+                <br><br>
+                <b style="color: #22c55e; font-size: 16px;">+10 Энергии 🔋</b>
+            </p>
+            
+            <!-- Поле с уникальной ссылкой -->
+            <input type="text" id="share-link-input" readonly style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #3f3f46; background: #27272a; color: white; text-align: center; margin-bottom: 15px; font-size: 12px; box-sizing: border-box;">
+            
+            <!-- Кнопка отправить -->
+            <button class="btn-buy" onclick="inviteFriendAction()" style="background: #22c55e; padding: 12px; margin-bottom: 20px;">✉️ Отправить ссылку другу</button>
 
-        <!-- Тестовая кнопка для симуляции вступления друга -->
-        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #3f3f46;">
-            <button class="btn-friends" style="width: 100%; font-size: 11px;" onclick="simulateFriendJoin()">⚙️ Симулировать: Друг зашел по ссылке</button>
+            <!-- НАЧАЛО НОВОГО БЛОКА: Список приглашённых друзей -->
+            <div style="border-top: 1px solid #3f3f46; padding-top: 15px; max-height: 150px; overflow-y: auto; text-align: left;">
+                <h4 style="margin: 0 0 10px 0; text-align: center; color: #facc15; font-size: 14px;">Приглашённые друзья:</h4>
+                <div id="invited-friends-list">
+                    <!-- Сюда JavaScript будет вставлять друзей -->
+                </div>
+            </div>
+            <!-- КОНЕЦ НОВОГО БЛОКА -->
         </div>
     </div>
-</div>
+
            <!-- Блок Рейтинга Топ-10 -->
     <div class="leaderboard-section">
         <h3>🏆 Рейтинг игроков (Топ-10)</h3>
