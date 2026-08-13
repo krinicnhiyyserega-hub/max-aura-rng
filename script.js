@@ -293,6 +293,48 @@ function checkAdCooldown() {
         }
     }
 }
+// 🔄 ФУНКЦИЯ ДЛЯ КНОПКИ ДРУЗЕЙ (ОТКРЫТИЕ И ЗАКРЫТИЕ ОКНА)
+function toggleFriends(show) {
+    const modal = document.getElementById("friends-modal");
+    if (!modal) return;
+
+    if (show) {
+        modal.style.display = "flex"; // Показываем окно
+        
+        // Генерируем красивую реферальную ссылку
+        const currentUrl = window.location.href.split('?');
+        const referralLink = `${currentUrl[0]}?ref=${playerName}`;
+        
+        document.getElementById("share-link-input").value = referralLink;
+    } else {
+        modal.style.display = "none"; // Скрываем окно
+    }
+}
+
+// ✉️ ДЕЙСТВИЕ ПРИ НАЖАТИИ «ОТПРАВИТЬ ССЫЛКУ»
+function inviteFriendAction() {
+    const linkInput = document.getElementById("share-link-input");
+    
+    // 1. Копируем ссылку в память телефона
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999); 
+    navigator.clipboard.writeText(linkInput.value);
+
+    // 2. Начисляем +10 энергии за поддержку игры
+    playerEnergy += 10; 
+    updateEnergyUI();   
+    saveProgress();     
+
+    // 3. Показываем уведомление игроку
+    alert("🎉 Ссылка скопирована! Отправь её другу в мессенджер.\n\nТебе начислено +10 Энергии 🔋 за поддержку игры!");
+    
+    toggleFriends(false); // Закрываем окошко
+}
+
+// 🔗 ФУНКЦИЯ-ЗАГЛУШКА (ЧТОБЫ КНОПКА ИЗ HTML НЕ ВЫДАВАЛА ОШИБКУ)
+function openFriends() {
+    toggleFriends(true);
+}
 
 // НАЙДИТЕ САМЫЙ КОНЕЦ ВАШЕГО ФАЙЛА SCRIPT.JS И ДОБАВЬТЕ ТУДА ВЫЗОВ ПРОВЕРКИ:
 // Допишите строку checkAdCooldown(); сразу после loadLiveLeaderboard();
