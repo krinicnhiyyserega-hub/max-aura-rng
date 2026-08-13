@@ -1,0 +1,12 @@
+meta:
+  environment: nodejs
+  toolchain:
+    name: npm
+    version: 18
+build:
+  requirements:
+    - package.json
+  artifacts:
+    - node_modules
+run:
+  command: node server.js

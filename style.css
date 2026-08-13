@@ -1,0 +1,312 @@
+body {
+    background-color: #121214;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px 0;
+}
+
+.game-container {
+    text-align: center;
+    background: #1e1e24;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 400px;
+}
+
+#roll-button {
+    background: linear-gradient(45deg, #a855f7, #6366f1);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 20px 0;
+    transition: 0.2s;
+    width: 100%;
+}
+
+#roll-button:active {
+    transform: scale(0.95);
+}
+
+#roll-button:disabled {
+    background: #4b5563 !important;
+    cursor: not-allowed;
+    transform: scale(1) !important;
+}
+
+/* Стили для магических аур */
+.aura-none { font-size: 24px; color: #888; }
+.aura-common { font-size: 28px; color: #a1a1aa; text-shadow: 0 0 10px #a1a1aa; }
+.aura-rare { font-size: 28px; color: #3b82f6; text-shadow: 0 0 15px #3b82f6; }
+.aura-epic { font-size: 28px; color: #ef4444; text-shadow: 0 0 20px #ef4444; }
+.aura-mythic { font-size: 32px; color: #a855f7; text-shadow: 0 0 25px #a855f7; font-weight: bold; }
+
+/* Контейнер картинки */
+#aura-wrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#aura-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    animation: spin 4s linear infinite; 
+}
+
+.glow-effect {
+    filter: drop-shadow(0 0 15px currentColor);
+}
+
+.roulette-spin {
+    animation: spin-fast 0.2s linear infinite !important;
+    filter: blur(1px) drop-shadow(0 0 25px #ffffff) !important;
+    opacity: 0.7;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes spin-fast {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Меню кнопок */
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 8px;
+}
+
+.action-buttons button {
+    flex: 1;
+    padding: 12px 5px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.btn-ads { background: #eab308; color: black !important; }
+.btn-inventory { background: #3b82f6; }
+.btn-friends { background: #22c55e; }
+
+/* ВСПЛЫВАЮЩЕЕ ОКНО (МОДАЛКА) */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #1e1e24;
+    padding: 20px;
+    border-radius: 15px;
+    width: 85%;
+    max-width: 350px;
+    border: 1px solid #3f3f46;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
+    position: relative;
+    animation: fadeIn 0.2s ease;
+}
+
+.close-button {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    color: #a1a1aa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover { color: #ef4444; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Элементы инвентаря внутри окна */
+.inventory-item {
+    display: flex;
+    justify-content: space-between;
+    background: #27272a;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    text-align: left;
+}
+
+.inventory-count {
+    background: #52525b;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+/* Рейтинг */
+.leaderboard-section {
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #3f3f46;
+    text-align: left;
+}
+
+.leaderboard-section h3 {
+    text-align: center;
+    margin-bottom: 12px;
+    color: #e4e4e7;
+}
+
+#leaderboard-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #27272a;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #3f3f46;
+    font-size: 13px;
+}
+
+.leaderboard-item.player-row {
+    color: #facc15;
+    font-weight: bold;
+    border-color: #facc15;
+}
+
+.leaderboard-rolls {
+    color: #a1a1aa;
+    font-size: 11px;
+    background: #1e1e24;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: auto;
+    margin-right: 15px;
+}
+/* Кнопка продажи в инвентаре */
+.btn-sell {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: 0.2s;
+}
+
+.btn-sell:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+}
+
+.inventory-actions {
+    display: flex;
+    align-items: center;
+}
+/* Кнопка магазина на главном экране */
+.btn-shop {
+    background: #a855f7;
+}
+
+/* Карточка товара в магазине */
+.shop-item {
+    background: #27272a;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #3f3f46;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.shop-item h4 {
+    margin: 0 0 5px 0;
+    color: #facc15;
+    font-size: 16px;
+}
+
+.shop-item p {
+    margin: 0 0 15px 0;
+    color: #a1a1aa;
+    font-size: 13px;
+}
+
+/* Кнопка купить внутри магазина */
+.btn-buy {
+    background: #22c55e;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+    transition: 0.2s;
+    width: 100%;
+}
+
+.btn-buy:hover {
+    background: #16a34a;
+    transform: scale(1.02);
+}
+
+.btn-buy:disabled {
+    background: #4b5563;
+    cursor: not-allowed;
+    transform: scale(1) !important;
+}
+/* Эффект для закончившейся энергии */
+.no-energy {
+    color: #ef4444;
+    font-weight: bold;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0.5; }
+}
+#share-link-input:focus {
+    outline: none;
+    border-color: #22c55e;
+}

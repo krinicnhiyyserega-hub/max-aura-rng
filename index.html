@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Max Aura RNG</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- ПОДКЛЮЧЕНИЕ СЕТЕВОГО СКРИПТА ЯНДЕКС РЕКЛАМЫ (РСЯ) -->
+    <script src="https://yandex.ru" async></script>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔮 Max Aura RNG 🔮</h1>
+        
+        <div class="stat-box">
+    <p>Удача: <span id="luck-multiplier">1</span>x</p>
+    <p>Всего круток: <span id="total-rolls">0</span></p>
+    <p>Очки рейтинга: <span id="score-display">0</span> ⭐</p>
+    <p>Баланс: <span id="coins-display">0</span> 💰</p>
+    <!-- Добавили строчку энергии -->
+    <p>Энергия: <span id="energy-display">10</span>/10 🔋</p>
+</div>
+
+
+        <div class="aura-display">
+            <h2>Твоя аура:</h2>
+            <div id="aura-wrapper">
+                <img id="aura-image" src="" style="display: none;" alt="Аура">
+                <div id="current-aura" class="aura-none">Нет ауры</div>
+            </div>
+            <p id="aura-chance"></p>
+        </div>
+
+        <button id="roll-button" onclick="rollAura()">КРУТИТЬ</button>
+
+        <!-- Обновленное меню (Добавили кнопку Магазина и уменьшили текст, чтобы всё влезло) -->
+        <div class="action-buttons">
+            <button class="btn-ads" onclick="watchAd()">📺 Реклама</button>
+            <button class="btn-inventory" onclick="toggleInventory(true)">🎒 Рюкзак</button>
+            <button class="btn-shop" onclick="toggleShop(true)">🛒 Магазин</button>
+            <button class="btn-friends" onclick="openFriends()">👥 Друзья</button>
+        </div>
+
+        <!-- Блок Рейтинга Топ-10 -->
+        <div class="leaderboard-section">
+            <h3>🏆 Рейтинг игроков (Топ-10)</h3>
+            <ol id="leaderboard-list">
+                <!-- Сюда JavaScript выводит таблицу лидеров -->
+            </ol>
+        </div>
+    </div>
+
+    <!-- ВСПЛЫВАЮЩЕЕ ОКНО ИНВЕНТАРЯ -->
+    <div id="inventory-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="toggleInventory(false)">&times;</span>
+            <h3>🎒 Твой инвентарь аур</h3>
+            <div id="inventory-list">
+                <p style="color: #888; text-align: center; margin: 0;">Тут пока пусто. Испытай удачу!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ВСПЛЫВАЮЩЕЕ ОКНО МАГАЗИНА АПГРЕЙДОВ -->
+    <div id="shop-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="toggleShop(false)">&times;</span>
+            <h3>🛒 Магазин Апгрейдов</h3>
+            <div id="shop-list">
+                <!-- Сюда JavaScript добавит карточку покупки удачи -->
+            </div>
+        </div>
+    </div>
+<!-- ВСПЛЫВАЮЩЕЕ ОКНО ДРУЗЕЙ (РЕФЕРАЛЫ) -->
+<div id="friends-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" onclick="toggleFriends(false)">&times;</span>
+        <h3>👥 Приведи друга</h3>
+        <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 15px;">
+            Отправь ссылку другу. За каждого, кто зайдет в игру, ты получишь <b style="color: #22c55e;">+10 Энергии 🔋</b>!
+        </p>
+        
+        <!-- Поле с ссылкой -->
+        <input type="text" id="share-link-input" readonly style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #3f3f46; background: #27272a; color: white; text-align: center; margin-bottom: 10px; font-size: 12px;">
+        
+        <!-- Кнопка копирования -->
+        <button class="btn-buy" onclick="copyLink()">📋 Скопировать ссылку</button>
+
+        <!-- Тестовая кнопка для симуляции вступления друга -->
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #3f3f46;">
+            <button class="btn-friends" style="width: 100%; font-size: 11px;" onclick="simulateFriendJoin()">⚙️ Симулировать: Друг зашел по ссылке</button>
+        </div>
+    </div>
+</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
