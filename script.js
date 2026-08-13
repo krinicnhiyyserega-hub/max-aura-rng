@@ -4,15 +4,12 @@ let rolls = 0;
 let playerScore = 0;
 let playerCoins = 0; 
 let playerEnergy = 10; 
-// Стало: Проверяем, есть ли уже сохраненное имя в памяти устройства
 let playerName = localStorage.getItem("rng_player_name");
 
-// Если имени в памяти нет (игрок зашел самый первый раз) — создаем его один раз и сохраняем
 if (!playerName) {
     playerName = "Игрок_" + Math.floor(Math.random() * 9000);
     localStorage.setItem("rng_player_name", playerName);
 }
-
 
 let playerInventory = {
     "mythic": 0,
@@ -20,6 +17,10 @@ let playerInventory = {
     "rare": 0,
     "common": 0
 };
+
+let invitedFriends = [];
+
+const RANDOM_NAMES = ["Никита_VK", "Алина_Смайл", "Дима_Крутилкин", "Оля_Аура", "Данил_RNG", "Катя_Космос", "Сергей_🎰", "Яна_Звезда", "Павел_Max"];
 
 const AURAS = [
     { id: "mythic", name: "Разлом Пустоты", chance: 0.05, class: "aura-mythic", image: "images/void.png", scorePrice: 1000, sellPrice: 500 },
@@ -34,6 +35,8 @@ let livePlayers = [
     { name: "Иван_🎰", score: 1500, rolls: 400 }
 ];
 
+let adCooldownInterval;
+
 // 💾 СОХРАНЕНИЕ ПРОГРЕССА
 function saveProgress() {
     localStorage.setItem("rng_rolls", rolls);
@@ -42,8 +45,7 @@ function saveProgress() {
     localStorage.setItem("rng_luck_level", luckLevel);
     localStorage.setItem("rng_energy", playerEnergy); 
     localStorage.setItem("rng_inventory", JSON.stringify(playerInventory));
-
-    sendScoreToServer(playerName, playerScore, rolls);
+    localStorage.setItem("rng_invited_friends", JSON.stringify(invitedFriends));
 }
 
 // 📂 ЗАГРУЗКА ПРОГРЕССА
@@ -54,6 +56,7 @@ function loadProgress() {
     const savedLuckLevel = localStorage.getItem("rng_luck_level");
     const savedEnergy = localStorage.getItem("rng_energy"); 
     const savedInventory = localStorage.getItem("rng_inventory");
+    const savedFriends = localStorage.getItem("rng_invited_friends");
 
     if (savedRolls !== null) rolls = parseInt(savedRolls);
     if (savedScore !== null) playerScore = parseInt(savedScore);
@@ -61,6 +64,7 @@ function loadProgress() {
     if (savedLuckLevel !== null) luckLevel = parseInt(savedLuckLevel);
     if (savedEnergy !== null) playerEnergy = parseInt(savedEnergy);
     if (savedInventory !== null) playerInventory = JSON.parse(savedInventory);
+    if (savedFriends !== null) invitedFriends = JSON.parse(savedFriends);
 
     luck = 1 + (luckLevel - 1) * 0.2;
 
@@ -74,11 +78,13 @@ function loadProgress() {
 
 function updateEnergyUI() {
     const energyDisplay = document.getElementById("energy-display");
-    energyDisplay.innerText = playerEnergy;
-    energyDisplay.className = playerEnergy <= 0 ? "no-energy" : "";
+    if (energyDisplay) {
+        energyDisplay.innerText = playerEnergy;
+        energyDisplay.className = playerEnergy <= 0 ? "no-energy" : "";
+    }
 }
 
-// 🔄 ФУНКЦИИ ОКON И МОДАЛОК
+// 🔄 ОКНА (МОДАЛКИ)
 function toggleInventory(show) {
     document.getElementById("inventory-modal").style.display = show ? "flex" : "none";
 }
@@ -88,38 +94,87 @@ function toggleShop(show) {
     if (show) updateShopUI();
 }
 
-// Новая функция для открытия/закрытия окна Друзей
+// РЕФЕРАЛЬНОЕ ОКНО
 function toggleFriends(show) {
-    document.getElementById("friends-modal").style.display = show ? "flex" : "none";
+    const modal = document.getElementById("friends-modal");
+    if (!modal) return;
+
     if (show) {
-        // Генерируем реальную реферальную ссылку для мессенджера Макс
-        let link = "t.me/max_aura_bot?start=" + playerName;
-        document.getElementById("share-link-input").value = link;
+        modal.style.display = "flex"; 
+        const baseUrl = window.location.href.split('?')[0];
+        document.getElementById("share-link-input").value = `${baseUrl}?start=${playerName}`;
+        updateFriendsUI(); // Обновляем список на экране при открытии
+    } else {
+        modal.style.display = "none"; 
     }
 }
 
-// 📋 ФУНКЦИЯ КОПИРОВАНИЯ ССЫЛКИ С КЛИПБОРДОМ ТЕЛЕФОНА
-function copyLink() {
+function openFriends() {
+    toggleFriends(true);
+}
+
+// ОБНОВЛЕНИЕ СПИСКА ДРУЗЕЙ В МЕНЮ
+function updateFriendsUI() {
+    const listContainer = document.getElementById("invited-friends-list");
+    if (!listContainer) return;
+    
+    listContainer.innerHTML = ""; 
+
+    if (invitedFriends.length === 0) {
+        listContainer.innerHTML = `<p style="color: #888; text-align: center; font-size: 12px; margin: 5px 0;">Ты пока никого не пригласил.</p>`;
+        return;
+    }
+
+    invitedFriends.forEach(friend => {
+        listContainer.innerHTML += `
+            <div class="friend-row" style="display: flex; justify-content: space-between; background: #27272a; padding: 6px 12px; border-radius: 6px; margin-bottom: 5px; font-size: 13px; color: #e4e4e7; border: 1px solid #3f3f46;">
+                <span>👤 ${friend.name}</span>
+                <span class="friend-status" style="color: #22c55e; font-weight: bold; font-size: 11px;">${friend.status}</span>
+            </div>
+        `;
+    });
+}
+
+// ДЕЙСТВИЕ ПРИ НАЖАТИИ «ПРИГЛАСИТЬ»
+function inviteFriendAction() {
+    const referralLink = document.getElementById("share-link-input").value;
+    const inviteText = "🔮 Смотри какую крутую RNG игру с аурами я нашёл! Заходи по моей ссылке: ";
+    const maxShareUrl = `https://t.me{encodeURIComponent(referralLink)}&text=${encodeURIComponent(inviteText)}`;
+
+    try {
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.openLink(maxShareUrl);
+        } else {
+            window.open(maxShareUrl, '_blank');
+        }
+    } catch (e) { console.log(e); }
+
+    // Копирование в буфер обмена для надежности
     const linkInput = document.getElementById("share-link-input");
-    linkInput.select();
-    linkInput.setSelectionRange(0, 99999); // Для мобильных устройств
+    if (linkInput) {
+        linkInput.select();
+        document.execCommand("copy");
+    }
 
-    // Записываем ссылку в буфер обмена телефона/компьютера
-    navigator.clipboard.writeText(linkInput.value);
-    alert("Ссылка успешно скопирована! Отправь её друзьям в мессенджер.");
+    // Добавляем случайного друга
+    const randomName = RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)];
+    if (!invitedFriends.some(f => f.name === randomName)) {
+        invitedFriends.push({ name: randomName, status: "Зашёл в игру ✅" });
+    } else {
+        invitedFriends.push({ name: randomName + "_" + Math.floor(Math.random() * 100), status: "Зашёл в игру ✅" });
+    }
+
+    // 🔥 СТРОГО НАЧИСЛЯЕМ ЭНЕРГИЮ, А НЕ МОНЕТЫ
+    playerEnergy += 10; 
+    updateEnergyUI();   
+    
+    updateFriendsUI();
+    saveProgress();     
+
+    alert("🎉 Успешно!\n\nСсылка скопирована. Тебе начислено +10 Энергии 🔋 за поддержку игры!");
 }
 
-// 👥 СИМУЛЯЦИЯ: ПОЛУЧЕНИЕ НАГРАДЫ ЗА ДРУГА
-function simulateFriendJoin() {
-    alert("🎉 Живой человек перешел по твоей ссылке! Награда: +10 Энергии 🔋");
-    
-    playerEnergy += 10; // Добавляем 10 энергии
-    
-    updateEnergyUI();   // Обновляем счетчик на главном экране
-    saveProgress();     // Автосохранение
-}
-
-// ОСТАЛЬНОЙ СТАНДАРТНЫЙ КОД ИГРЫ
+// ИНВЕНТАРЬ
 function updateInventoryUI() {
     const listContainer = document.getElementById("inventory-list");
     listContainer.innerHTML = "";
@@ -144,6 +199,19 @@ function updateInventoryUI() {
     }
 }
 
+// ПРОДАЖА
+function sellAura(id) {
+    if (playerInventory[id] > 0) {
+        let auraData = AURAS.find(a => a.id === id);
+        playerInventory[id] -= 1;
+        playerCoins += auraData.sellPrice; // Монеты даются ТОЛЬКО при продаже аур
+        document.getElementById("coins-display").innerText = playerCoins;
+        updateInventoryUI();
+        saveProgress();
+    }
+}
+
+// МАГАЗИН
 function updateShopUI() {
     const shopContainer = document.getElementById("shop-list");
     let currentPrice = luckLevel * 50; 
@@ -177,25 +245,11 @@ function buyLuckUpgrade(price) {
     }
 }
 
-function sellAura(id) {
-    if (playerInventory[id] > 0) {
-        let auraData = AURAS.find(a => a.id === id);
-        playerInventory[id] -= 1;
-        playerCoins += auraData.sellPrice;
-        document.getElementById("coins-display").innerText = playerCoins;
-        updateInventoryUI();
-        saveProgress();
-    }
-}
-
-// Переменная для хранения таймера в памяти
-let adCooldownInterval;
-
-// 📺 ГАРАНТИРОВАННАЯ ФУНКЦИЯ РЕКЛАМЫ (НАГРАДА В ЛЮБОМ СЛУЧАЕ)
+// РЕКЛАМА
 function watchAd() {
     if (typeof window.yaContextCb === 'undefined') {
         alert("Рекламный блок сейчас загружается. Начисляем бонус аварийно!");
-        giveAdReward(); // Если скрипт Яндекса заблокирован, все равно даем энергию
+        giveAdReward(); 
         return;
     }
 
@@ -205,220 +259,109 @@ function watchAd() {
             type: 'fullscreen',
             platform: 'touch',
             callbacks: {
-                onOpen: () => {
-                    console.log("📺 Рекламное окно открыто.");
-                },
-                onClose: () => {
-                    // 🎉 Игрок закрыл рекламу сам (досмотрел или нет — неважно)
-                    console.log("🎉 Реклама закрыта пользователем. Выдаем награду.");
-                    giveAdReward();
-                },
-                onError: (error) => {
-                    // 🛠️ АВАРИЙНЫЙ БОНУС: Если Яндекс не смог загрузить баннер, все равно даем энергию!
-                    console.error("Яндекс не смог показать рекламу, выдаем бонус аварийно:", error);
-                    giveAdReward();
-                }
+                onOpen: () => { console.log("📺 Реклама открыта."); },
+                onClose: () => { giveAdReward(); },
+                onError: (error) => { giveAdReward(); }
             }
         });
     });
 }
 
-// Отдельная внутренняя функция для выдачи награды и запуска таймера
 function giveAdReward() {
-    playerEnergy += 5; // Начисляем +5 энергии
-    updateEnergyUI();  // Обновляем циферки на экране
-    saveProgress();    // Сохраняем прогресс на телефоне
-    
+    playerEnergy += 5; 
+    updateEnergyUI();  
+    saveProgress();    
     alert("🎉 Награда получена! Вам начислено +5 энергии 🔋.");
-
-    // Намертво блокируем кнопку на 5 минут и красим её в серый цвет
     startAdCooldown(300);
 }
-
-
-// ⏱️ ИСПРАВЛЕННАЯ ФУНКЦИЯ ТАЙМЕРА РЕКЛАМЫ
 function startAdCooldown(seconds) {
-    // Находим кнопку рекламы по её классу .btn-ads
     const adButton = document.querySelector(".btn-ads");
+    if (!adButton) return;
     
-    // Если вдруг кнопка не нашлась, пробуем найти её по тегу (на всякий случай)
-    if (!adButton) {
-        console.error("Кнопка рекламы не найдена в HTML!");
-        return;
-    }
-
-    adButton.disabled = true; // 🔥 ВАЖНО: Физически блокируем кнопку (включает серый цвет в CSS)
-
-    // Запоминаем время разблокировки
+    adButton.disabled = true;
     const unlockTime = Date.now() + seconds * 1000;
     localStorage.setItem("rng_ad_unlock_time", unlockTime);
-
-    // Очищаем прошлый таймер
+    
     clearInterval(adCooldownInterval);
-
-    // Запускаем ежесекундный отсчет
     adCooldownInterval = setInterval(() => {
         const timeLeft = Math.max(0, Math.ceil((unlockTime - Date.now()) / 1000));
-
+        
         if (timeLeft <= 0) {
-            // ВРЕМЯ ВЫШЛО: Включаем кнопку обратно
             clearInterval(adCooldownInterval);
-            adButton.disabled = false; // 🔥 Разблокируем кнопку (включает желтый цвет обратно)
+            adButton.disabled = false;
             adButton.innerText = "📺 Реклама";
             localStorage.removeItem("rng_ad_unlock_time");
         } else {
-            // ПОКА ИДЕТ ОТСЧЕТ: Считаем минуты и секунды
             const minutes = Math.floor(timeLeft / 60);
             const remainingSeconds = timeLeft % 60;
             const formattedTime = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-            
             adButton.innerText = `⏳ Реклама (${formattedTime})`;
         }
     }, 1000);
 }
 
-
-// 🔍 ФУНКЦИЯ ПРОВЕРКИ ТАЙМЕРА ПРИ СТАРТЕ ИГРЫ
 function checkAdCooldown() {
     const savedUnlockTime = localStorage.getItem("rng_ad_unlock_time");
-    
     if (savedUnlockTime) {
         const timeLeft = Math.max(0, Math.ceil((parseInt(savedUnlockTime) - Date.now()) / 1000));
-        
-        if (timeLeft > 0) {
-            // Если игрок обновил страницу, а время еще не вышло — возвращаем таймер назад
-            startAdCooldown(timeLeft);
-        } else {
-            localStorage.removeItem("rng_ad_unlock_time");
-        }
-    }
-}
-// 🔄 ФУНКЦИЯ ДЛЯ КНОПКИ ДРУЗЕЙ (ОТКРЫТИЕ И ЗАКРЫТИЕ ОКНА)
-function toggleFriends(show) {
-    const modal = document.getElementById("friends-modal");
-    if (!modal) return;
-
-    if (show) {
-        modal.style.display = "flex"; // Показываем окно
-        
-        // Генерируем красивую реферальную ссылку
-        const currentUrl = window.location.href.split('?');
-        const referralLink = `${currentUrl[0]}?ref=${playerName}`;
-        
-        document.getElementById("share-link-input").value = referralLink;
-    } else {
-        modal.style.display = "none"; // Скрываем окно
+        if (timeLeft > 0) startAdCooldown(timeLeft);
+        else localStorage.removeItem("rng_ad_unlock_time");
     }
 }
 
-// ✉️ НАДЁЖНОЕ ДЕЙСТВИЕ ДЛЯ МЕССЕНДЖЕРА МАКС
-function inviteFriendAction() {
-    // 1. Берём чистый адрес вашей игры на GitHub Pages
-    const baseUrl = window.location.href.split('?')[0];
-    
-    // Формируем реферальную ссылку (привязываем имя текущего игрока)
-    const referralLink = `${baseUrl}?start=${playerName}`;
-    
-    // Текст сообщения, который автоматически подставится в чат вашему другу
-    const inviteText = "🔮 Смотри какую крутую RNG игру с аурами я нашёл! Заходи по моей ссылке и получи стартовую удачу: ";
-    
-    // Создаём универсальную сетевую ссылку «Поделиться», которую распознаёт встроенный браузер Макса
-    const maxShareUrl = `https://t.me{encodeURIComponent(referralLink)}&text=${encodeURIComponent(inviteText)}`;
-
-    // 🔥 ЗАПУСКАТЕЛЬ НАТИВНОГО ОКНА МАКСА
-    // Пытаемся вызвать внутреннее перенаправление мессенджера
-    try {
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.openLink(maxShareUrl); // Нативный метод для Mini Apps
-        } else {
-            // Если игрок сидит через веб-версию Макса на ПК, просто открываем вкладку
-            window.open(maxShareUrl, '_blank');
-        }
-    } catch (e) {
-        console.log("Локальный тест: копируем ссылку аварийно.");
-    }
-
-    // 2. Аварийный буфер (если мессенджер запретил открытие ссылок, ссылка всё равно скопируется в память телефона)
-    const linkInput = document.getElementById("share-link-input");
-    if (linkInput) {
-        linkInput.value = referralLink;
-        linkInput.select();
-        linkInput.setSelectionRange(0, 99999);
-        document.execCommand("copy"); // Старый надёжный метод копирования для мобилок
-    }
-
-    // 🎉 ЧЕСТНАЯ НАГРАДА: Начисляем +10 энергии за то, что игрок нажал кнопку и позвал друга!
-    playerEnergy += 10; 
-    updateEnergyUI();   // Обновляем циферки энергии на главном экране
-    saveProgress();     // Записываем новые 10 единиц энергии в автосохранение
-
-    alert("🎉 Успешно!\n\nСсылка скопирована в буфер обмена, и Макс открывает список друзей.\n\nТебе начислено +10 Энергии 🔋 за поддержку игры!");
-    
-    toggleFriends(false); // Закрываем всплывающее окошко рюкзака/друзей
-}
-
-
-// 🔗 ФУНКЦИЯ-ЗАГЛУШКА (ЧТОБЫ КНОПКА ИЗ HTML НЕ ВЫДАВАЛА ОШИБКУ)
-function openFriends() {
-    toggleFriends(true);
-}
-
-// НАЙДИТЕ САМЫЙ КОНЕЦ ВАШЕГО ФАЙЛА SCRIPT.JS И ДОБАВЬТЕ ТУДА ВЫЗОВ ПРОВЕРКИ:
-// Допишите строку checkAdCooldown(); сразу после loadLiveLeaderboard();
-loadProgress();
-updateInventoryUI();
-loadLiveLeaderboard();
-checkAdCooldown(); // 👈 ДОБАВИТЬ СЮДА
-
-
-
+// 🌀 КРУТКА РУЛЕТКИ
 function rollAura() {
     if (playerEnergy <= 0) {
         alert("У вас закончилась энергия! Посмотрите рекламу 📺 или пригласите друга 👥.");
         return;
     }
-
+    
     const rollButton = document.getElementById("roll-button");
     const textDisplay = document.getElementById("current-aura");
     const imgDisplay = document.getElementById("aura-image");
     const chanceDisplay = document.getElementById("aura-chance");
-
+    
     rollButton.disabled = true;
     rolls++;
     document.getElementById("total-rolls").innerText = rolls;
-
+    
     playerEnergy -= 1;
     updateEnergyUI();
-
-    imgDisplay.src = "images/fog.png"; 
+    
+    imgDisplay.src = "images/fog.png";
     imgDisplay.style.display = "block";
     imgDisplay.classList.add("roulette-spin");
     textDisplay.innerText = "🌀 Выбор аур...";
     textDisplay.className = "aura-none";
     chanceDisplay.innerText = "";
-
+    
     setTimeout(() => {
         let randomNumber = Math.random() * luck;
         let winAura = null;
-
+        
         for (let aura of AURAS) {
-            if (randomNumber <= aura.chance) { winAura = aura; break; }
+            if (randomNumber <= aura.chance) { 
+                winAura = aura; 
+                break; 
+            }
         }
-
+        
         imgDisplay.classList.remove("roulette-spin");
         rollButton.disabled = false;
-
+        
         if (winAura) {
             textDisplay.innerText = winAura.name;
             textDisplay.className = winAura.class;
             imgDisplay.src = winAura.image;
-            imgDisplay.className = "glow-effect"; 
+            imgDisplay.className = "glow-effect";
             chanceDisplay.innerText = `Шанс: ${(winAura.chance * 100).toFixed(2)}%`;
-
+            
             playerInventory[winAura.id] += 1;
             playerScore += winAura.scorePrice;
             document.getElementById("score-display").innerText = playerScore;
+            
             updateInventoryUI();
+            renderLeaderboard();
         } else {
             textDisplay.innerText = "Ничего не выпало";
             textDisplay.className = "aura-none";
@@ -426,41 +369,21 @@ function rollAura() {
         }
         
         saveProgress();
-    }, 1500); 
-}
-
-async function sendScoreToServer(name, score, userRolls) {
-    try {
-        await fetch('http://localhost:3000/api/score', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name, score: score, rolls: userRolls })
-        });
-        loadLiveLeaderboard();
-    } catch (error) { renderLeaderboard(); }
-}
-
-async function loadLiveLeaderboard() {
-    try {
-        let response = await fetch('http://localhost:3000/api/leaderboard');
-        livePlayers = await response.json();
-        renderLeaderboard();
-    } catch (error) { renderLeaderboard(); }
+    }, 1500);
 }
 
 function renderLeaderboard() {
     const boardContainer = document.getElementById("leaderboard-list");
+    if (!boardContainer) return;
     boardContainer.innerHTML = "";
-    let playerInTop = livePlayers.some(p => p.name === playerName);
-    let allPlayers = [...livePlayers];
-    if (!playerInTop) { allPlayers.push({ name: "Ты (" + playerName + ")", score: playerScore, rolls: rolls, isCurrentPlayer: true }); }
+    
+    let allPlayers = [...livePlayers, { name: "Ты (" + playerName + ")", score: playerScore, rolls: rolls, isCurrentPlayer: true }];
     allPlayers.sort((a, b) => b.score - a.score);
+    
     allPlayers.slice(0, 10).forEach(user => {
-        // Проверяем, является ли текущая строка рейтинга строкой нашего игрока
         let isMe = user.isCurrentPlayer || user.name === "Ты (" + playerName + ")";
         let rowClass = isMe ? "leaderboard-item player-row" : "leaderboard-item";
         
-        // Отрисовка строки участника в Топ-10 (исправлена ошибка кавычек)
         boardContainer.innerHTML += `
             <li class="${rowClass}">
                 <span>${user.name}</span>
@@ -471,7 +394,9 @@ function renderLeaderboard() {
     });
 }
 
-// СТАРТ ИГРЫ (Вызывается один раз автоматически при запуске)
-loadProgress();         // 1. Загружаем сохранения из памяти устройства
-updateInventoryUI();    // 2. Отрисовываем вещи в рюкзаке
-loadLiveLeaderboard();  // 3. Подключаем живых людей и обновляем Топ-10
+// 🚀 СТАРТ ИГРЫ
+loadProgress();
+updateInventoryUI();
+renderLeaderboard();
+checkAdCooldown();
+
