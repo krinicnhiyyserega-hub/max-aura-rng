@@ -231,16 +231,24 @@ function watchAd() {
 }
 
 
-// ⏱️ ФУНКЦИЯ ЗАПУСКА ОТСЧЕТА ВРЕМЕНИ
+// ⏱️ ИСПРАВЛЕННАЯ ФУНКЦИЯ ТАЙМЕРА РЕКЛАМЫ
 function startAdCooldown(seconds) {
+    // Находим кнопку рекламы по её классу .btn-ads
     const adButton = document.querySelector(".btn-ads");
-    adButton.disabled = true; // Блокируем кнопку
+    
+    // Если вдруг кнопка не нашлась, пробуем найти её по тегу (на всякий случай)
+    if (!adButton) {
+        console.error("Кнопка рекламы не найдена в HTML!");
+        return;
+    }
 
-    // Запоминаем точное время, КОГДА реклама снова станет доступна (текущее время + секунды)
+    adButton.disabled = true; // 🔥 ВАЖНО: Физически блокируем кнопку (включает серый цвет в CSS)
+
+    // Запоминаем время разблокировки
     const unlockTime = Date.now() + seconds * 1000;
     localStorage.setItem("rng_ad_unlock_time", unlockTime);
 
-    // Сбрасываем старый интервал, если он был
+    // Очищаем прошлый таймер
     clearInterval(adCooldownInterval);
 
     // Запускаем ежесекундный отсчет
@@ -248,13 +256,13 @@ function startAdCooldown(seconds) {
         const timeLeft = Math.max(0, Math.ceil((unlockTime - Date.now()) / 1000));
 
         if (timeLeft <= 0) {
-            // Время прошло! Делаем кнопку снова активной
+            // ВРЕМЯ ВЫШЛО: Включаем кнопку обратно
             clearInterval(adCooldownInterval);
-            adButton.disabled = false;
+            adButton.disabled = false; // 🔥 Разблокируем кнопку (включает желтый цвет обратно)
             adButton.innerText = "📺 Реклама";
             localStorage.removeItem("rng_ad_unlock_time");
         } else {
-            // Считаем минуты и секунды для текста на кнопке
+            // ПОКА ИДЕТ ОТСЧЕТ: Считаем минуты и секунды
             const minutes = Math.floor(timeLeft / 60);
             const remainingSeconds = timeLeft % 60;
             const formattedTime = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -263,6 +271,7 @@ function startAdCooldown(seconds) {
         }
     }, 1000);
 }
+
 
 // 🔍 ФУНКЦИЯ ПРОВЕРКИ ТАЙМЕРА ПРИ СТАРТЕ ИГРЫ
 function checkAdCooldown() {
