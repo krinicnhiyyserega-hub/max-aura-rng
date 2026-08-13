@@ -108,21 +108,25 @@ body {
     font-weight: bold;
 }
 
-/* Кнопка рекламы, когда она активна */
+/* 1. Когда реклама ГОТОВА — кнопка горит ярким жёлтым цветом */
 .btn-ads {
-    background: #eab308;
-    color: black !important;
+    background: #eab308 !important; /* Насыщенный жёлтый */
+    color: black !important;         /* Чёрный текст для читаемости */
+    opacity: 1 !important;
+    cursor: pointer;
     transition: 0.3s ease;
 }
 
-/* Эффект, когда кнопка рекламы заблокирована таймером */
+/* 2. Когда реклама НЕ ГОТОВА (работает таймер) — кнопка горит СЕРЫМ цветом */
 .btn-ads:disabled {
-    background: #3f3f46 !important; /* Делаем её серой */
-    color: #a1a1aa !important;
-    cursor: not-allowed;
-    transform: scale(1) !important;
-    opacity: 0.6;
+    background: #3f3f46 !important; /* Тёмно-серый цвет */
+    color: #a1a1aa !important;     /* Светло-серый текст */
+    opacity: 0.6 !important;        /* Делаем её полупрозрачной */
+    cursor: not-allowed !important; /* Меняем курсор */
+    transform: scale(1) !important; /* Убираем эффекты клика */
 }
+
+
 /* Синяя кнопка для Рюкзака */
 .btn-inventory {
     background: #3b82f6 !important;
