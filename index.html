@@ -99,6 +99,26 @@
     </script>
 
     <!-- Скрипт игры должен идти самым последним! -->
+
+        <!-- ВСПЛЫВАЮЩЕЕ ОКНО: РЕФЕРАЛЬНАЯ СИСТЕМА -->
+    <div id="friends-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-button" onclick="toggleFriends(false)">&times;</span>
+            <h3>👥 Приведи друга!</h3>
+            <p style="font-size: 13px; color: #a1a1aa; margin-bottom: 15px; text-align: center;">
+                Поделись игрой с друзьями в мессенджере! За каждую отправку ссылки ты мгновенно получишь награду:
+                <br><br>
+                <b style="color: #22c55e; font-size: 16px;">+10 Энергии 🔋</b>
+            </p>
+            
+            <!-- Поле с уникальной ссылкой игрока -->
+            <input type="text" id="share-link-input" readonly style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #3f3f46; background: #27272a; color: white; text-align: center; margin-bottom: 15px; font-size: 12px; box-sizing: border-box;">
+            
+            <!-- Кнопка отправить/скопировать -->
+            <button class="btn-buy" onclick="inviteFriendAction()" style="background: #22c55e; padding: 12px;">✉️ Отправить ссылку другу</button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
